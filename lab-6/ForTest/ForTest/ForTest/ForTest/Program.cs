@@ -1,0 +1,53 @@
+﻿// Program.cs
+
+using System;
+using System.Diagnostics;
+using System.Net.Http;
+using System.Threading.Tasks;
+
+namespace ForTest.ForTest
+{
+    internal class Program
+    {
+        static async Task Main(string[] args)
+        {
+            var program = new Program();
+            await program.RunValidationProcessAsync();
+        }
+
+        private async Task RunValidationProcessAsync()
+        {
+            var validator = new WordValidator();
+            int totalWords = 20;
+            int errorCount = 0;
+            var stopwatch = new Stopwatch();
+            stopwatch.Start();
+
+            for (int i = 0; i < totalWords; i++)
+            {
+                string word = await GetRandomWordAsync();
+                Console.WriteLine($"Type the following word: {word}");
+
+                string userInput = Console.ReadLine();
+                if (!validator.Validate(userInput, word))
+                {
+                    errorCount++;
+                    Console.WriteLine("Incorrect! Try again.");
+                }
+            }
+
+            stopwatch.Stop();
+            Console.WriteLine($"You made {errorCount} errors.");
+            Console.WriteLine($"Total time: {stopwatch.Elapsed.TotalSeconds} seconds.");
+        }
+
+        private static async Task<string> GetRandomWordAsync()
+        {
+            HttpResponseMessage response = await HttpClientSingleton.Instance.GetAsync("https://random-word-api.herokuapp.com/word");
+            response.EnsureSuccessStatusCode();
+
+            string jsonResponse = await response.Content.ReadAsStringAsync();
+            return jsonResponse.Split('"')[1];
+        }
+    }
+}

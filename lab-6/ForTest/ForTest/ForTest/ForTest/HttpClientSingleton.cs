@@ -8,9 +8,14 @@ using System.Net.Http;
 namespace ForTest.ForTest
 {
     // Singleton pattern
-    public class HttpClientSingleton
+    public sealed class HttpClientSingleton
     {
-        private static readonly HttpClient instance = new HttpClient();
+        private static readonly Lazy<HttpClient> lazyInstance = new Lazy<HttpClient>(() => 
+        {
+            var client = new HttpClient();
+            client.BaseAddress = new Uri("https://random-word-api.herokuapp.com/");
+            return client;
+        });
 
         private HttpClientSingleton() { }
 
@@ -18,7 +23,7 @@ namespace ForTest.ForTest
         {
             get
             {
-                return instance;
+                return lazyInstance.Value;
             }
         }
     }

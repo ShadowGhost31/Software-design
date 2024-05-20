@@ -28,7 +28,14 @@ namespace ForTest.ForTest
                 string word = await GetRandomWordAsync();
                 Console.WriteLine($"Type the following word: {word}");
 
-                string userInput = Console.ReadLine();
+                string userInput;
+                while (true)
+                {
+                    userInput = Console.ReadLine();
+                    if (!string.IsNullOrEmpty(userInput)) break;
+                    Console.WriteLine("Input cannot be empty. Please try again.");
+                }
+
                 if (!validator.Validate(userInput, word))
                 {
                     errorCount++;
@@ -43,11 +50,19 @@ namespace ForTest.ForTest
 
         private static async Task<string> GetRandomWordAsync()
         {
-            HttpResponseMessage response = await HttpClientSingleton.Instance.GetAsync("https://random-word-api.herokuapp.com/word");
-            response.EnsureSuccessStatusCode();
+            try
+            {
+                HttpResponseMessage response = await HttpClientSingleton.Instance.GetAsync("word");
+                response.EnsureSuccessStatusCode();
 
-            string jsonResponse = await response.Content.ReadAsStringAsync();
-            return jsonResponse.Split('"')[1];
+                string jsonResponse = await response.Content.ReadAsStringAsync();
+                return jsonResponse.Trim('[', ']', '"');
+            }
+            catch (HttpRequestException e)
+            {
+                Console.WriteLine($"Request error: {e.Message}");
+                return "error"; 
+            }
         }
     }
 }

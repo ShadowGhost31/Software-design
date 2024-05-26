@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace ForTest.ForTest
 {
-    // Strategy pattern
+  
     public interface IValidator
     {
         bool Validate(string value, string valueToCompare);

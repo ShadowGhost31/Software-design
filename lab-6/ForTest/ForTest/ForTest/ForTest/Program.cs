@@ -1,6 +1,4 @@
-﻿// Program.cs
-
-using System;
+﻿using System;
 using System.Diagnostics;
 using System.Net.Http;
 using System.Threading.Tasks;
@@ -28,14 +26,7 @@ namespace ForTest.ForTest
                 string word = await GetRandomWordAsync();
                 Console.WriteLine($"Type the following word: {word}");
 
-                string userInput;
-                while (true)
-                {
-                    userInput = Console.ReadLine();
-                    if (!string.IsNullOrEmpty(userInput)) break;
-                    Console.WriteLine("Input cannot be empty. Please try again.");
-                }
-
+                string userInput = await GetUserInputAsync();
                 if (!validator.Validate(userInput, word))
                 {
                     errorCount++;
@@ -61,8 +52,29 @@ namespace ForTest.ForTest
             catch (HttpRequestException e)
             {
                 Console.WriteLine($"Request error: {e.Message}");
-                return "error"; 
+                return "error";
             }
+        }
+
+        private static async Task<string> GetUserInputAsync()
+        {
+            string userInput = null;
+            while (string.IsNullOrEmpty(userInput))
+            {
+                try
+                {
+                    userInput = await Task.Run(() => Console.ReadLine());
+                    if (string.IsNullOrEmpty(userInput))
+                    {
+                        Console.WriteLine("Input cannot be empty. Please try again.");
+                    }
+                }
+                catch (Exception e)
+                {
+                    Console.WriteLine($"Error reading input: {e.Message}");
+                }
+            }
+            return userInput;
         }
     }
 }

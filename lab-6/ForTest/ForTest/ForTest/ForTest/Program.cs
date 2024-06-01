@@ -21,11 +21,21 @@ namespace ForTest.ForTest
             int totalWords = 20;
             int errorCount = 0;
             var stopwatch = new Stopwatch();
-            stopwatch.Start();
+            string filePath = "results.txt";
+			IResultManager resultManager = new FileResultManager(filePath);
+            int mode;
+            Console.Write("1. Single word mode\n2. Multi word mode\nChoose mode: ");
+			while (!int.TryParse(Console.ReadLine(), out mode) || mode < 1 || mode > 2)
+			{
+				Console.WriteLine("Invalid input. Try again.");
+			}
+			IWordRequester wordRequester = new WordRequesterFactory().CreateWordRequester(mode);
 
-            for (int i = 0; i < totalWords; i++)
+			stopwatch.Start();
+
+			for (int i = 0; i < totalWords; i++)
             {
-                string word = await GetRandomWordAsync();
+                string word = await wordRequester.GetRandomWordAsync();
                 Console.WriteLine($"Type the following word: {word}");
 
                 string userInput = Console.ReadLine();
@@ -39,15 +49,14 @@ namespace ForTest.ForTest
             stopwatch.Stop();
             Console.WriteLine($"You made {errorCount} errors.");
             Console.WriteLine($"Total time: {stopwatch.Elapsed.TotalSeconds} seconds.");
-        }
-
-        private static async Task<string> GetRandomWordAsync()
-        {
-            HttpResponseMessage response = await HttpClientSingleton.Instance.GetAsync("https://random-word-api.herokuapp.com/word");
-            response.EnsureSuccessStatusCode();
-
-            string jsonResponse = await response.Content.ReadAsStringAsync();
-            return jsonResponse.Split('"')[1];
-        }
+            string name;
+			Console.Write("Enter your name: ");
+			while (string.IsNullOrEmpty(name = Console.ReadLine()))
+			{
+				Console.WriteLine("Invalid input. Try again.");
+			}
+			resultManager.SaveResult(name, errorCount, stopwatch.Elapsed.TotalSeconds);
+			resultManager.PrintResults();
+		}
     }
 }

@@ -1,11 +1,10 @@
-﻿// Program.cs
-
+﻿using ForTest;
 using System;
 using System.Diagnostics;
 using System.Net.Http;
 using System.Threading.Tasks;
 
-namespace ForTest.ForTest
+namespace ForTest
 {
     internal class Program
     {
@@ -22,18 +21,14 @@ namespace ForTest.ForTest
             int errorCount = 0;
             var stopwatch = new Stopwatch();
             string filePath = "results.txt";
-			IResultManager resultManager = new FileResultManager(filePath);
-            int mode;
-            Console.Write("1. Single word mode\n2. Multi word mode\nChoose mode: ");
-			while (!int.TryParse(Console.ReadLine(), out mode) || mode < 1 || mode > 2)
-			{
-				Console.WriteLine("Invalid input. Try again.");
-			}
-			IWordRequester wordRequester = new WordRequesterFactory().CreateWordRequester(mode);
+            IResultManager resultManager = new FileResultManager(filePath);
 
-			stopwatch.Start();
+            int mode = GetModeFromUser();
+            IWordRequester wordRequester = new WordRequesterFactory(HttpClientSingleton.Instance).CreateWordRequester(mode);
 
-			for (int i = 0; i < totalWords; i++)
+            stopwatch.Start();
+
+            for (int i = 0; i < totalWords; i++)
             {
                 string word = await wordRequester.GetRandomWordAsync();
                 Console.WriteLine($"Type the following word: {word}");
@@ -49,14 +44,32 @@ namespace ForTest.ForTest
             stopwatch.Stop();
             Console.WriteLine($"You made {errorCount} errors.");
             Console.WriteLine($"Total time: {stopwatch.Elapsed.TotalSeconds} seconds.");
+
+            string name = GetUserName();
+            resultManager.SaveResult(name, errorCount, stopwatch.Elapsed.TotalSeconds);
+            resultManager.PrintResults();
+        }
+
+        private int GetModeFromUser()
+        {
+            int mode;
+            Console.Write("1. Single word mode\n2. Multi word mode\nChoose mode: ");
+            while (!int.TryParse(Console.ReadLine(), out mode) || mode < 1 || mode > 2)
+            {
+                Console.WriteLine("Invalid input. Try again.");
+            }
+            return mode;
+        }
+
+        private string GetUserName()
+        {
             string name;
-			Console.Write("Enter your name: ");
-			while (string.IsNullOrEmpty(name = Console.ReadLine()))
-			{
-				Console.WriteLine("Invalid input. Try again.");
-			}
-			resultManager.SaveResult(name, errorCount, stopwatch.Elapsed.TotalSeconds);
-			resultManager.PrintResults();
-		}
+            Console.Write("Enter your name: ");
+            while (string.IsNullOrEmpty(name = Console.ReadLine()))
+            {
+                Console.WriteLine("Invalid input. Try again.");
+            }
+            return name;
+        }
     }
 }

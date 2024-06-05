@@ -1,24 +1,24 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Net.Http;
 
-namespace ForTest.ForTest
+namespace ForTest
 {
-	internal class WordRequesterFactory
-	{
-		public IWordRequester CreateWordRequester(int mode)
-		{
-			switch (mode)
-			{
-				case 1:
-					return new SingleWordRequester();
-				case 2:
-					return new MultiWordRequester();
-				default:
-					throw new ArgumentException("Invalid mode");
-			}
-		}
-	}
+    internal class WordRequesterFactory
+    {
+        private readonly HttpClient _httpClient;
+
+        public WordRequesterFactory(HttpClient httpClient)
+        {
+            _httpClient = httpClient;
+        }
+
+        public IWordRequester CreateWordRequester(int mode)
+        {
+            return mode switch
+            {
+                1 => new SingleWordRequester(_httpClient),
+                2 => new MultiWordRequester(_httpClient),
+                _ => throw new ArgumentException("Invalid mode"),
+            };
+        }
+    }
 }
